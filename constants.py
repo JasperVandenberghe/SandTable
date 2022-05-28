@@ -1,0 +1,49 @@
+MAX_LENGTH = 300
+
+RESOLUTION = {
+                'Full': (0,0,0),
+                'Half': (1,0,0),
+                '1/4': (0,1,0),
+                '1/8': (1,1,0),
+                '1/16': (0,0,1),
+                '1/32': (1,0,1)
+            }
+
+FACTOR = {
+                'Full': 1,
+                'Half': 2,
+                '1/4': 4,
+                '1/8': 8,
+                '1/16': 16,
+                '1/32': 32
+            }
+            
+MOTOR_ROT_RES = '1/32'
+MOTOR_LIN_RES = '1/32'
+
+MOTOR_LIN_UP = 1
+MOTOR_LIN_DOWN = 0
+MOTOR_ROT_CW = 0
+MOTOR_ROT_CCW = 1
+
+TEETH_PULLEY = 30.0
+TEETH_BELT = 311.0
+GEAR_RATIO = TEETH_BELT / TEETH_PULLEY
+STEPS_DISK_ROTATION = 200.0 * FACTOR[MOTOR_ROT_RES] * GEAR_RATIO
+
+STEPS_FULL_MODE_LENGTH = 1717 #1859
+STEPS_FULL_MODE_SHORT = 346
+STEPS_LINEAR_LENGTH = ((STEPS_FULL_MODE_LENGTH - STEPS_FULL_MODE_SHORT) * FACTOR[MOTOR_LIN_RES])
+STEPS_LINEAR_FROM_SHORT_END = STEPS_FULL_MODE_SHORT * FACTOR[MOTOR_LIN_RES]
+
+PIN_MOTOR_LIN_DIR = 26
+PIN_MOTOR_LIN_STEP = 19
+PIN_MOTOR_LIN_MODE = (5,6,13)
+PIN_MOTOR_ROT_DIR = 24
+PIN_MOTOR_ROT_STEP = 23
+PIN_MOTOR_ROT_MODE = (14,15,18)
+
+PIN_SWITCH_UP = 16
+PIN_SWITCH_DOWN = 12
+
+STATE_SWITCH_PRESSED = 0
