@@ -4,7 +4,7 @@ Code for a Sisyphus sand table.
 
 ## Patterns
 This folder contains both the processed and pending patters. After completing a pattern, it will be moved to the "processed" folder and a new pattern from the "new" folder will be used.
-Patterns are generated using sandify.org
+Patterns are generated using [sandify.org](https://sandify.org).
 
 ## Erasers
 Just as with patterns, erasers are placed in 2 different folders. Erasers are more simple patterns to quickly erase a previous drawing.
