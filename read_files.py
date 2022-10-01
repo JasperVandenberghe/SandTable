@@ -68,12 +68,11 @@ def lines_to_steps(lines):
         rho = int(float(line.split(' ')[1]) * constants.STEPS_LINEAR_LENGTH)
         arr[index] = [theta, rho]
     arr = arr[1:] - arr[:-1]
+    # Set first tethe to 0 to avoid random turn at the beginning
+    arr[0, 0] = 0
     return arr
 
 def add_delays(steps):
-    
-    default_speed = 2000.0
-    max_speed = 4000.0
     
     # Calculate time using Theta. Given calculated time, check if delay for Rho is not too small
     arr = np.zeros(shape=(len(steps),4), dtype=float)
@@ -84,18 +83,18 @@ def add_delays(steps):
     # 3 = Delay rho
 
     for index, step in enumerate(steps):
-        time_theta = abs(step[0]) / default_speed
+        time_theta = abs(step[0]) / constants.DEFAULT_SPEED
         
         # Check time is not 0, and delay for Rho would not be too small
-        if time_theta != 0 and (abs(step[1]) / time_theta) <= max_speed:
+        if time_theta != 0 and (abs(step[1]) / time_theta) <= constants.MAX_SPEED:
             # Both theta and rho -> different amount of steps, same speed -> use calculated time with amount of steps
-            delay_theta = round(1/default_speed, 5)
+            delay_theta = round(1/constants.DEFAULT_SPEED, 5)
             delay_rho = round(1/(abs(step[1]) / time_theta), 5) if step[1] != 0 else 0
         else:
             # Theta time is either 0, or too small for rho to perform amount of steps in given time -> use rho to calculate time for theta
-            time_rho = abs(step[1]) / default_speed
+            time_rho = abs(step[1]) / constants.DEFAULT_SPEED
             delay_theta = round(1/(abs(step[0]) / time_rho), 5) if step[0] != 0 else 0
-            delay_rho = round(1/default_speed, 5)
+            delay_rho = round(1/constants.DEFAULT_SPEED, 5)
         
         arr[index] = [step[0], step[1], delay_theta, delay_rho]
 
@@ -105,3 +104,4 @@ def file_to_steps(filepath):
     lines = get_lines(filepath)
     steps = lines_to_steps(lines)
     return add_delays(steps)
+

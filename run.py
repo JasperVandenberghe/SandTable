@@ -4,6 +4,7 @@ import RPi.GPIO as GPIO
 import threading
 import constants
 from motor import *
+from led_strip import *
 from read_files import *
 
 GPIO.setmode(GPIO.BCM)
@@ -12,24 +13,39 @@ GPIO.setup(constants.PIN_SWITCH_DOWN, GPIO.IN)
 stop_exec = False
 thread_mrot = threading.Thread()
 thread_mlin = threading.Thread()
+thread_led = threading.Thread()
 MRot = Motor(constants.PIN_MOTOR_ROT_DIR, constants.PIN_MOTOR_ROT_STEP, constants.PIN_MOTOR_ROT_MODE, constants.RESOLUTION[constants.MOTOR_ROT_RES])
 MLin = Motor(constants.PIN_MOTOR_LIN_DIR, constants.PIN_MOTOR_LIN_STEP, constants.PIN_MOTOR_LIN_MODE, constants.RESOLUTION[constants.MOTOR_LIN_RES])
+LedStrip = LedStripThread()
 
 def on_press(key):
     global thread_mrot
     global thread_mlin
+    global thread_led
     global stop_exec
     print('{0} pressed'.format(key))
 
     if key.char == 'p' or key.char == 'q':
         # Stop program
         stop_exec = True
+        
+        MLin.run = False
         MRot.run = False
+        LedStrip.running = False
+        
+        # Stop rotational motor
         if thread_mrot.is_alive():
             thread_mrot.join()
-        MLin.run = False
+            
+        # Stop linear motor
         if thread_mlin.is_alive():
             thread_mlin.join()
+            
+        # Stop LED strip
+        print('Set Led Strip running to {0}'.format(LedStrip.running))
+        if thread_led.is_alive():
+            print('LED thread alive!')
+            thread_led.join()
             
         # If Q, quit program, stops the listener
         if key.char =='q':
@@ -49,9 +65,12 @@ listener = Listener(
 listener.start()
 
 def main():
+    # Create & start thread for LEDs
+    thread_led = threading.Thread(target = LedStrip.run)
+    thread_led.start()
     # Align carriage centrally
-    MLin.step_until_switch(direction = constants.MOTOR_LIN_DOWN, delay = 0.0001, switch = constants.PIN_SWITCH_DOWN) # Go till shortest end switch
-    MLin.step(steps = constants.STEPS_LINEAR_FROM_SHORT_END, delay = 0.0001, direction = constants.MOTOR_LIN_UP, switch = constants.PIN_SWITCH_UP) # Move known amount of steps to center
+    MLin.step_until_switch(direction = constants.MOTOR_LIN_DOWN, delay = 0.002 / constants.FACTOR[constants.MOTOR_LIN_RES], switch = constants.PIN_SWITCH_DOWN) # Go till shortest end switch
+    MLin.step(steps = constants.STEPS_LINEAR_FROM_SHORT_END, delay = 0.002 / constants.FACTOR[constants.MOTOR_LIN_RES], direction = constants.MOTOR_LIN_UP, switch = constants.PIN_SWITCH_UP) # Move known amount of steps to center
       
     # Infinite loop processing files
     erase = False

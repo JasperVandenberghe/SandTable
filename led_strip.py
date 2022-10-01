@@ -11,8 +11,8 @@ from rpi_ws281x import PixelStrip, Color
 import argparse
 
 # LED strip configuration:
-LED_COUNT = 135       # Number of LED pixels.
-# LED_PIN = 18          # GPIO pin connected to the pixels (18 uses PWM!).
+LED_COUNT = 315       # Number of LED pixels.
+#LED_PIN = 18          # GPIO pin connected to the pixels (18 uses PWM!).
 LED_PIN = 10        # GPIO pin connected to the pixels (10 uses SPI /dev/spidev0.0).
 LED_FREQ_HZ = 800000  # LED signal frequency in hertz (usually 800khz)
 LED_DMA = 10          # DMA channel to use for generating signal (try 10)
@@ -22,39 +22,42 @@ LED_CHANNEL = 0       # set to '1' for GPIOs 13, 19, 41, 45 or 53
 
 GPIO.setwarnings(False)
 
-led_relay = 25
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(led_relay, GPIO.OUT)
+
 
 class LedStripThread():
+    
+    running = False
 
     def __init__(self):
         self.running = True
+        self.strip = PixelStrip(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS, LED_CHANNEL)
+        self.strip.begin()
 
     # Define functions which animate LEDs in various ways.
-    def colorWipe(self, strip, color, wait_ms=50):
+    def colorWipe(self, color, wait_ms=50):
         """Wipe color across display a pixel at a time."""
         if not self.running: return
-        for i in range(strip.numPixels()):
+        for i in range(self.strip.numPixels()):
             if not self.running: break
-            strip.setPixelColor(i, color)
-            strip.show()
+            self.strip.setPixelColor(i, color)
+            self.strip.show()
             time.sleep(wait_ms / 1000.0)
 
-    def theaterChase(self, strip, color, wait_ms=50, iterations=10):
+    def theaterChase(self, color, wait_ms=50, iterations=10):
         """Movie theater light style chaser animation."""
         if not self.running: return
         for j in range(iterations):
             for q in range(3):
                 if not self.running: break
-                for i in range(0, strip.numPixels(), 3):
+                for i in range(0, self.strip.numPixels(), 3):
                     if not self.running: break
-                    strip.setPixelColor(i + q, color)
-                strip.show()
+                    self.strip.setPixelColor(i + q, color)
+                self.strip.show()
                 time.sleep(wait_ms / 1000.0)
-                for i in range(0, strip.numPixels(), 3):
+                for i in range(0, self.strip.numPixels(), 3):
                     if not self.running: break
-                    strip.setPixelColor(i + q, 0)
+                    self.strip.setPixelColor(i + q, 0)
 
     def wheel(self, pos):
         """Generate rainbow colors across 0-255 positions."""
@@ -68,51 +71,59 @@ class LedStripThread():
             pos -= 170
             return Color(0, pos * 3, 255 - pos * 3)
 
-    def rainbow(self, strip, wait_ms=20, iterations=1):
+    def rainbow(self, wait_ms=20, iterations=1):
         """Draw rainbow that fades across all pixels at once."""
         if not self.running: return
         for j in range(256 * iterations):
             if not self.running: break
-            for i in range(strip.numPixels()):
+            for i in range(self.strip.numPixels()):
                 if not self.running: break
-                strip.setPixelColor(i, self.wheel((i + j) & 255))
-            strip.show()
+                self.strip.setPixelColor(i, self.wheel((i + j) & 255))
+            self.strip.show()
             time.sleep(wait_ms / 1000.0)
 
-    def rainbowCycle(self, strip, wait_ms=20, iterations=5):
+    def rainbowCycle(self, wait_ms=20, iterations=5):
         """Draw rainbow that uniformly distributes itself across all pixels."""
         if not self.running: return
         for j in range(256 * iterations):
             if not self.running: break
-            for i in range(strip.numPixels()):
+            for i in range(self.strip.numPixels()):
                 if not self.running: break
-                strip.setPixelColor(i, self.wheel(
-                    (int(i * 256 / strip.numPixels()) + j) & 255))
-            strip.show()
+                self.strip.setPixelColor(i, self.wheel(
+                    (int(i * 256 / self.strip.numPixels()) + j) & 255))
+            self.strip.show()
             time.sleep(wait_ms / 1000.0)
 
-    def theaterChaseRainbow(self, strip, wait_ms=50):
+    def theaterChaseRainbow(self, wait_ms=50):
         """Rainbow movie theater light style chaser animation."""
         if not self.running: return
         for j in range(256):
             for q in range(3):
                 if not self.running: break
-                for i in range(0, strip.numPixels(), 3):
+                for i in range(0, self.strip.numPixels(), 3):
                     if not self.running: break
-                    strip.setPixelColor(i + q, self.wheel((i + j) % 255))
-                strip.show()
+                    self.strip.setPixelColor(i + q, self.wheel((i + j) % 255))
+                self.strip.show()
                 time.sleep(wait_ms / 1000.0)
-                for i in range(0, strip.numPixels(), 3):
+                for i in range(0, self.strip.numPixels(), 3):
                     if not self.running: break
-                    strip.setPixelColor(i + q, 0)
-
-
-def strip_init():
-    return PixelStrip(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS, LED_CHANNEL)
+                    self.strip.setPixelColor(i + q, 0)
+                    
+    def run(self):
+        self.running = True
+        
+        while self.running:
+            self.rainbow()
+            self.rainbowCycle()
+            self.theaterChaseRainbow()
+            
+        
+        # Colour wipe the strip
+        self.colorWipe(Color(0, 0, 0), 10)
+        
 
 # Main program logic follows:
 if __name__ == '__main__':
-    GPIO.output(led_relay, GPIO.LOW)
 
     time.sleep(.5)
 
@@ -121,9 +132,9 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--clear', action='store_true', help='clear the display on exit')
     args = parser.parse_args()
     # Create NeoPixel object with appropriate configuration.
-    strip = PixelStrip(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS, LED_CHANNEL)
+    #strip = PixelStrip(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS, LED_CHANNEL)
     # Intialize the library (must be called once before other functions).
-    strip.begin()
+    #strip.begin()
 
     strip_thread = LedStripThread()
 
@@ -134,6 +145,7 @@ if __name__ == '__main__':
     try:
 
         while True:
+            """
             print('Color wipe animations.')
             strip_thread.colorWipe(strip, Color(255, 0, 0), 200)  # Red wipe
             strip_thread.colorWipe(strip, Color(0, 255, 0), 200)  # Blue wipe
@@ -143,11 +155,12 @@ if __name__ == '__main__':
             strip_thread.theaterChase(strip, Color(127, 0, 0))  # Red theater chase
             strip_thread.theaterChase(strip, Color(0, 0, 127))  # Blue theater chase
             print('Rainbow animations.')
-            strip_thread.rainbow(strip)
-            strip_thread.rainbowCycle(strip)
-            strip_thread.theaterChaseRainbow(strip)
+            strip_thread.rainbow()
+            strip_thread.rainbowCycle()
+            strip_thread.theaterChaseRainbow()
+            """
+            strip_thread.run()
 
     except KeyboardInterrupt:
-        GPIO.output(led_relay, GPIO.HIGH)
-        if args.clear:
-            strip_thread.colorWipe(strip, Color(0, 0, 0), 10)
+        strip_thread.running = False
+        strip_thread.colorWipe(strip, Color(0, 0, 0), 10)
