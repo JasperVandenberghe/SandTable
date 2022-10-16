@@ -62,13 +62,15 @@ def get_lines(filepath):
 
 def lines_to_steps(lines):
     arr = np.zeros(shape=(len(lines),2), dtype=int)
+    
     for index, line in enumerate(lines):
         # To steps
-        theta = int(float(line.split(' ')[0]) * constants.STEPS_DISK_ROTATION / 6.283)
-        rho = int(float(line.split(' ')[1]) * constants.STEPS_LINEAR_LENGTH)
+        theta = round(float(line.split(' ')[0]) * constants.STEPS_DISK_ROTATION / 6.283)
+        rho = round(float(line.split(' ')[1]) * constants.STEPS_LINEAR_LENGTH)
         arr[index] = [theta, rho]
     arr = arr[1:] - arr[:-1]
-    # Set first tethe to 0 to avoid random turn at the beginning
+    
+    # Set first tetha to 0 to avoid random turn at the beginning
     arr[0, 0] = 0
     return arr
 

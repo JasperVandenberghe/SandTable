@@ -14,8 +14,8 @@ stop_exec = False
 thread_mrot = threading.Thread()
 thread_mlin = threading.Thread()
 thread_led = threading.Thread()
-MRot = Motor(constants.PIN_MOTOR_ROT_DIR, constants.PIN_MOTOR_ROT_STEP, constants.PIN_MOTOR_ROT_MODE, constants.RESOLUTION[constants.MOTOR_ROT_RES])
-MLin = Motor(constants.PIN_MOTOR_LIN_DIR, constants.PIN_MOTOR_LIN_STEP, constants.PIN_MOTOR_LIN_MODE, constants.RESOLUTION[constants.MOTOR_LIN_RES])
+MRot = Motor(constants.PIN_MOTOR_ROT_DIR, constants.PIN_MOTOR_ROT_STEP, constants.PIN_MOTOR_ROT_MODE, constants.PIN_MOTOR_ROT_ENABLE, constants.RESOLUTION[constants.MOTOR_ROT_RES])
+MLin = Motor(constants.PIN_MOTOR_LIN_DIR, constants.PIN_MOTOR_LIN_STEP, constants.PIN_MOTOR_LIN_MODE, constants.PIN_MOTOR_LIN_ENABLE, constants.RESOLUTION[constants.MOTOR_LIN_RES])
 LedStrip = LedStripThread()
 
 def on_press(key):
@@ -68,9 +68,14 @@ def main():
     # Create & start thread for LEDs
     thread_led = threading.Thread(target = LedStrip.run)
     thread_led.start()
+    
+    # Enable both motors
+    MLin.enable_motor()
+    MRot.enable_motor()
+    
     # Align carriage centrally
-    MLin.step_until_switch(direction = constants.MOTOR_LIN_DOWN, delay = 0.002 / constants.FACTOR[constants.MOTOR_LIN_RES], switch = constants.PIN_SWITCH_DOWN) # Go till shortest end switch
-    MLin.step(steps = constants.STEPS_LINEAR_FROM_SHORT_END, delay = 0.002 / constants.FACTOR[constants.MOTOR_LIN_RES], direction = constants.MOTOR_LIN_UP, switch = constants.PIN_SWITCH_UP) # Move known amount of steps to center
+    MLin.step_until_switch(direction = constants.MOTOR_LIN_DOWN, delay = 0.006 / constants.FACTOR[constants.MOTOR_LIN_RES], switch = constants.PIN_SWITCH_DOWN) # Go till shortest end switch
+    MLin.step(steps = constants.STEPS_LINEAR_FROM_SHORT_END, delay = 0.006 / constants.FACTOR[constants.MOTOR_LIN_RES], direction = constants.MOTOR_LIN_UP, switch = constants.PIN_SWITCH_UP) # Move known amount of steps to center
       
     # Infinite loop processing files
     erase = False
@@ -85,6 +90,7 @@ def main():
             
         # Get steps
         steps = file_to_steps(pattern)
+        print('Starting pattern')
         
         # Begin pattern
         for step in steps:
@@ -100,11 +106,16 @@ def main():
                 # Wait for both motors to finish
                 thread_mrot.join()
                 thread_mlin.join()
-                
+                               
         # Swap erasing/non-erasing
         erase = not erase
+        
         # Move processed pattern/eraser
         move_file(pattern)
+    
+    # Disable both motors
+    MLin.disable_motor()
+    MRot.disable_motor()
     
 # Start main sequence
 main()

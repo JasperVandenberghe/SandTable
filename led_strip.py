@@ -11,7 +11,7 @@ from rpi_ws281x import PixelStrip, Color
 import argparse
 
 # LED strip configuration:
-LED_COUNT = 315       # Number of LED pixels.
+LED_COUNT = 209       # Number of LED pixels.
 #LED_PIN = 18          # GPIO pin connected to the pixels (18 uses PWM!).
 LED_PIN = 10        # GPIO pin connected to the pixels (10 uses SPI /dev/spidev0.0).
 LED_FREQ_HZ = 800000  # LED signal frequency in hertz (usually 800khz)
@@ -113,9 +113,9 @@ class LedStripThread():
         self.running = True
         
         while self.running:
-            self.rainbow()
-            self.rainbowCycle()
-            self.theaterChaseRainbow()
+            self.rainbow(wait_ms = 200)
+            self.rainbowCycle(wait_ms = 200)
+            #self.theaterChaseRainbow()
             
         
         # Colour wipe the strip
@@ -137,13 +137,13 @@ if __name__ == '__main__':
     #strip.begin()
 
     strip_thread = LedStripThread()
+    strip_thread.colorWipe(Color(0, 0, 0), 10)
 
     print('Press Ctrl-C to quit.')
     if not args.clear:
         print('Use "-c" argument to clear LEDs on exit')
 
     try:
-
         while True:
             """
             print('Color wipe animations.')
