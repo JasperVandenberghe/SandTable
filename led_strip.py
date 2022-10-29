@@ -33,6 +33,7 @@ class LedStripThread():
         self.running = True
         self.strip = PixelStrip(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS, LED_CHANNEL)
         self.strip.begin()
+        self.strip.setBrightness(155)
 
     # Define functions which animate LEDs in various ways.
     def colorWipe(self, color, wait_ms=50):
@@ -109,17 +110,35 @@ class LedStripThread():
                     if not self.running: break
                     self.strip.setPixelColor(i + q, 0)
                     
-    def run(self):
+    def cycleColors(self):
         self.running = True
         
         while self.running:
-            self.rainbow(wait_ms = 200)
+            #self.rainbow(wait_ms = 200)
             self.rainbowCycle(wait_ms = 200)
             #self.theaterChaseRainbow()
             
         
         # Colour wipe the strip
         self.colorWipe(Color(0, 0, 0), 10)
+        
+    def setWhite(self):
+        for i in range(self.strip.numPixels()):
+            self.strip.setPixelColor(i, Color(241, 231, 211))
+        self.strip.show()
+        
+    def setColor(self, Color):
+        for i in range(self.strip.numPixels()):
+            self.strip.setPixelColor(i, Color)
+        self.strip.show()
+        
+    def increaseBrightness(self):
+        self.strip.setBrightness(min(self.strip.getBrightness() + 10, 255))
+        self.strip.show()
+        
+    def decreaseBrightness(self):
+        self.strip.setBrightness(max(self.strip.getBrightness() - 10, 0))
+        self.strip.show()
         
 
 # Main program logic follows:
@@ -136,31 +155,20 @@ if __name__ == '__main__':
     # Intialize the library (must be called once before other functions).
     #strip.begin()
 
+
     strip_thread = LedStripThread()
-    strip_thread.colorWipe(Color(0, 0, 0), 10)
 
     print('Press Ctrl-C to quit.')
     if not args.clear:
         print('Use "-c" argument to clear LEDs on exit')
+        
+
 
     try:
         while True:
-            """
-            print('Color wipe animations.')
-            strip_thread.colorWipe(strip, Color(255, 0, 0), 200)  # Red wipe
-            strip_thread.colorWipe(strip, Color(0, 255, 0), 200)  # Blue wipe
-            strip_thread.colorWipe(strip, Color(0, 0, 255), 200)  # Green wipe
-            print('Theater chase animations.')
-            strip_thread.theaterChase(strip, Color(127, 127, 127))  # White theater chase
-            strip_thread.theaterChase(strip, Color(127, 0, 0))  # Red theater chase
-            strip_thread.theaterChase(strip, Color(0, 0, 127))  # Blue theater chase
-            print('Rainbow animations.')
-            strip_thread.rainbow()
-            strip_thread.rainbowCycle()
-            strip_thread.theaterChaseRainbow()
-            """
-            strip_thread.run()
+            strip_thread.cycleColors()
 
     except KeyboardInterrupt:
         strip_thread.running = False
         strip_thread.colorWipe(strip, Color(0, 0, 0), 10)
+        

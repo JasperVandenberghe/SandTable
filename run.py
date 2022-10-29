@@ -19,13 +19,38 @@ MLin = Motor(constants.PIN_MOTOR_LIN_DIR, constants.PIN_MOTOR_LIN_STEP, constant
 LedStrip = LedStripThread()
 
 def on_press(key):
-    global thread_mrot
-    global thread_mlin
     global thread_led
     global stop_exec
-    print('{0} pressed'.format(key))
+    
+    # Switch LEDs between colours and white
+    if key.char == 'l':
+        
+        print('Switching LED!')
+        # If going through colours, stop thread & start white
+        if thread_led.is_alive():
+            LedStrip.running = False
+            thread_led.join()
 
+            LedStrip.running = True
+            LedStrip.setWhite()
+        
+        # Set LED to cycling through colours
+        else:
+            thread_led = threading.Thread(target = LedStrip.cycleColors)
+            thread_led.start()            
+
+    # Increase brightness
+    if key.char == 'i':
+        print('Increasing brightness')
+        LedStrip.increaseBrightness()
+        
+    # Decrese brightness
+    if key.char == 'd':
+        print('Decresing brightness')
+        LedStrip.decreaseBrightness()
+    
     if key.char == 'p' or key.char == 'q':
+        print('Stopping / pausing program')
         # Stop program
         stop_exec = True
         
@@ -44,7 +69,6 @@ def on_press(key):
         # Stop LED strip
         print('Set Led Strip running to {0}'.format(LedStrip.running))
         if thread_led.is_alive():
-            print('LED thread alive!')
             thread_led.join()
             
         # If Q, quit program, stops the listener
@@ -52,7 +76,7 @@ def on_press(key):
             return False
             
     if key.char == 's':
-        
+        print('Restarting program')
         # If program has been stopped, restart
         if stop_exec:
             stop_exec = False
@@ -65,8 +89,15 @@ listener = Listener(
 listener.start()
 
 def main():
+    global thread_led
+    global thread_mlin
+    global thread_mrot
+    global stop_exec
+    
+    print('Starting main')
+    
     # Create & start thread for LEDs
-    thread_led = threading.Thread(target = LedStrip.run)
+    thread_led = threading.Thread(target = LedStrip.cycleColors)
     thread_led.start()
     
     # Enable both motors
@@ -74,19 +105,14 @@ def main():
     MRot.enable_motor()
     
     # Align carriage centrally
-    MLin.step_until_switch(direction = constants.MOTOR_LIN_DOWN, delay = 0.006 / constants.FACTOR[constants.MOTOR_LIN_RES], switch = constants.PIN_SWITCH_DOWN) # Go till shortest end switch
-    MLin.step(steps = constants.STEPS_LINEAR_FROM_SHORT_END, delay = 0.006 / constants.FACTOR[constants.MOTOR_LIN_RES], direction = constants.MOTOR_LIN_UP, switch = constants.PIN_SWITCH_UP) # Move known amount of steps to center
+    #MLin.step_until_switch(direction = constants.MOTOR_LIN_DOWN, delay = 0.006 / constants.FACTOR[constants.MOTOR_LIN_RES], switch = constants.PIN_SWITCH_DOWN) # Go till shortest end switch
+    #MLin.step(steps = constants.STEPS_LINEAR_FROM_SHORT_END, delay = 0.006 / constants.FACTOR[constants.MOTOR_LIN_RES], direction = constants.MOTOR_LIN_UP, switch = constants.PIN_SWITCH_UP) # Move known amount of steps to center
       
     # Infinite loop processing files
-    erase = False
     while not stop_exec:
-        # Get pattern or eraser
-        if erase:
-            pattern = get_eraser_file()
-            print('Erasing table using eraser {0}'.format(pattern))
-        else:
-            pattern = get_pattern_file()
-            print('Creating pattern using {0}'.format(pattern))
+
+        pattern = get_pattern_file()
+        print('Creating pattern using {0}'.format(pattern))
             
         # Get steps
         steps = file_to_steps(pattern)
@@ -106,9 +132,6 @@ def main():
                 # Wait for both motors to finish
                 thread_mrot.join()
                 thread_mlin.join()
-                               
-        # Swap erasing/non-erasing
-        erase = not erase
         
         # Move processed pattern/eraser
         move_file(pattern)
@@ -123,5 +146,6 @@ main()
 # Cleanup
 listener.join()
 print('Quitting program, goodbye')
-GPIO.output(constants.PIN_MOTOR_ROT_STEP, GPIO.LOW)
+MRot.disable_motor()
+MLin.disable_motor()
 GPIO.cleanup()

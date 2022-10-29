@@ -5,23 +5,25 @@ import random
 import numpy as np
 import constants 
 
+filepath = os.path.split(os.path.realpath(__file__))[0]
+
 def get_pattern_file():
     print('Getting new pattern')
-    file = get_file('patterns')
-    return 'patterns/new/{0}'.format(file)
+    file = get_file(filepath + '/patterns')
+    return file
     
 def get_eraser_file():
     print('Getting new eraser')
-    file = get_file('erasers') 
-    return 'erasers/new/{0}'.format(file)
+    file = get_file(filepath + '/erasers') 
+    return file
     
 def move_pattern_file(file):
     print('Moving pattern {0}'.format(file))
-    move_file('patterns/new/{0}'.format(file))
+    move_file(filepath + '/patterns/new/{0}'.format(file))
     
 def move_eraser_file(file):
     print('Moving eraser {0}'.format(file))
-    move_file('erasers/new/{0}'.format(file))
+    move_file(filepath + '/erasers/new/{0}'.format(file))
     
 def move_file(filepath):
     if path.exists(filepath):
@@ -48,7 +50,7 @@ def get_file(rootfolder):
         
     file = random.choice(files)
     print('Choosing file {0}'.format(file))
-    return file    
+    return rootfolder + '/new/' + file
 
 def get_lines(filepath):
 
