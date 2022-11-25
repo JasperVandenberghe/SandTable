@@ -42,7 +42,7 @@ MOTOR_ROT_CW = 0
 MOTOR_ROT_CCW = 1
 
 TEETH_PULLEY = 30.0
-TEETH_BELT = 310 # Was 311 but seemed a bit too much with some patterns
+TEETH_BELT = 309 # Was 311 but seemed a bit too much with some patterns
 GEAR_RATIO = TEETH_BELT / TEETH_PULLEY
 STEPS_DISK_ROTATION = 200.0 * FACTOR[MOTOR_ROT_RES] * GEAR_RATIO
 

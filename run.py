@@ -110,6 +110,10 @@ def main():
       
     # Infinite loop processing files
     while not stop_exec:
+        
+        # Disable motors when calculating steps, can take some time
+        MLin.disable_motor()
+        MRot.disable_motor()
 
         pattern = get_pattern_file()
         print('Creating pattern using {0}'.format(pattern))
@@ -117,6 +121,10 @@ def main():
         # Get steps
         steps = file_to_steps(pattern)
         print('Starting pattern')
+        
+        # Enable motors again
+        MLin.enable_motor()
+        MRot.enable_motor()
         
         # Begin pattern
         for step in steps:

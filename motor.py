@@ -11,7 +11,6 @@ class Motor:
 	resolution = 0
 	
 	run = False
-	switch_pressed = False
 	
 	def setup(self):
 		self.run = False
@@ -44,7 +43,7 @@ class Motor:
 
 		GPIO.output(self.pin_direction, direction)
 		steps = abs(steps)
-		while steps > 0 and self.run and steps > 0 and (GPIO.input(switch) != constants.STATE_SWITCH_PRESSED if switch is not None else True):
+		while steps > 0 and self.run and (GPIO.input(switch) != constants.STATE_SWITCH_PRESSED if switch is not None else True):
 			GPIO.output(self.pin_step, GPIO.HIGH)
 			sleep(delay)
 			GPIO.output(self.pin_step, GPIO.LOW)
