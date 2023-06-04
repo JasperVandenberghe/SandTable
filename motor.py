@@ -49,6 +49,14 @@ class Motor:
 			GPIO.output(self.pin_step, GPIO.LOW)
 			sleep(delay)
 			steps -=1
+			
+		if switch is not None and GPIO.input(switch) == constants.STATE_SWITCH_PRESSED:
+			if switch == constants.PIN_SWITCH_UP:
+				print('Switch up pressed')
+			elif switch == constants.PIN_SWITCH_DOWN:
+				print('Switch down pressed')
+			else:
+				print('Some other switch pressed')
 						
 	def step_until_switch(self, direction, delay, switch):
 		if switch is None:

@@ -102,9 +102,9 @@ def main():
     
     # Enable both motors
     MLin.enable_motor()
-    MRot.enable_motor()
+    #MRot.enable_motor()
     
-    # Align carriage centrally
+    # Align carriage
     MLin.step_until_switch(direction = constants.MOTOR_LIN_DOWN, delay = 0.006 / constants.FACTOR[constants.MOTOR_LIN_RES], switch = constants.PIN_SWITCH_DOWN) # Go till shortest end switch
     MLin.step(steps = constants.STEPS_LINEAR_FROM_SHORT_END, delay = 0.006 / constants.FACTOR[constants.MOTOR_LIN_RES], direction = constants.MOTOR_LIN_UP, switch = constants.PIN_SWITCH_UP) # Move known amount of steps to center
       

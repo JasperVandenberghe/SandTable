@@ -115,7 +115,7 @@ class LedStripThread():
         
         while self.running:
             #self.rainbow(wait_ms = 200)
-            self.rainbowCycle(wait_ms = 200)
+            self.rainbowCycle(wait_ms = 800)
             #self.theaterChaseRainbow()
             
         
