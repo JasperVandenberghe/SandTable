@@ -55,7 +55,9 @@ def get_file(rootfolder):
 def get_lines(filepath):
 
     with open(filepath, 'r') as pattern:
-        lines = pattern.readlines()
+        lines = (line.rstrip() for line in pattern) # pattern.readlines()
+        lines = list(line for line in lines if line) # Non-blank lines in a list
+        lines = list(line for line in lines if not line.startswith('#'))
         
         for index, line in enumerate(lines):
             lines[index] = line.replace('\n', '')
@@ -108,4 +110,12 @@ def file_to_steps(filepath):
     lines = get_lines(filepath)
     steps = lines_to_steps(lines)
     return add_delays(steps)
+    
+if __name__ == '__main__':
+    pattern = get_pattern_file()
+    print('Creating pattern using {0}'.format(pattern))
+            
+    # Get steps
+    steps = file_to_steps(pattern)
+    print('Starting pattern')
 
