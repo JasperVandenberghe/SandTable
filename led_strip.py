@@ -132,6 +132,15 @@ class LedStripThread():
             self.strip.setPixelColor(i, Color)
         self.strip.show()
         
+    def setBrightness(self, brightness):
+        print('Led setting brightness to', brightness)
+        if brightness is None or brightness < 1 or brightness > 255:
+            print('LED early return')
+            return
+            
+        self.strip.setBrightness(brightness)
+        self.strip.show()
+        
     def increaseBrightness(self):
         self.strip.setBrightness(min(self.strip.getBrightness() + 10, 255))
         self.strip.show()
@@ -167,6 +176,7 @@ if __name__ == '__main__':
     try:
         while True:
             strip_thread.cycleColors()
+            #strip_thread.setColor(Color(255,0,0))
 
     except KeyboardInterrupt:
         strip_thread.running = False

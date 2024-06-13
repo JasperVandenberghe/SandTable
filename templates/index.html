@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+   <head>
+      <title>Sysiphus Sand Table</title>
+      <link rel="stylesheet" href='../static/style.css'/>
+   </head>
+   <body>
+      <h1>Sysiphus Sand Table</h1>
+	<div class="row">
+		<div class="column">
+			<h2>Pattern control</h2>
+		</div>
+		<div class="column">
+			<h2>Light control</h2>
+			<button class="button" onclick="setColor('WHITE')">Set white</button>
+			<button class="button" onclick="setColor('RAINBOW')">Set color</button>
+			
+			<div>
+			  <input type="range" min="1" max="255" value="155" class="slider" id="myRange" oninput="adjustBrightness(this.value)">
+			</div>
+		</div>
+	</div>
+	
+	<script>
+		function adjustBrightness(value) {			
+			fetch("/light/brightness", {
+			  method: "POST",
+			  body: JSON.stringify({
+			    brightness: value
+			  }),
+			  headers: {
+			    "Content-type": "application/json; charset=UTF-8"
+			  }
+			});
+		}
+		
+		function setColor(color) {
+			console.log('Called functioon set color with value', color);			
+			fetch("/light/color", {
+			  method: "POST",
+			  body: JSON.stringify({
+			    color: color
+			  }),
+			  headers: {
+			    "Content-type": "application/json; charset=UTF-8"
+			  }
+			});
+		}
+	</script>
+   </body>
+</html>
