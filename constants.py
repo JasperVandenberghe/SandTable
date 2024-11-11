@@ -48,7 +48,7 @@ TEETH_BELT = 309 # Was 311 but seemed a bit too much with some patterns
 GEAR_RATIO = TEETH_BELT / TEETH_PULLEY
 STEPS_DISK_ROTATION = 200.0 * FACTOR[MOTOR_ROT_RES] * GEAR_RATIO
 
-STEPS_FULL_MODE_LENGTH = 2002 #2004 is full, but prevent touching the switch by reducing with 2 steps
+STEPS_FULL_MODE_LENGTH = 1892 #1894 is full, but prevent touching the switch by reducing with 2 steps
 STEPS_FULL_MODE_SHORT = 415
 STEPS_LINEAR_LENGTH = ((STEPS_FULL_MODE_LENGTH - STEPS_FULL_MODE_SHORT) * FACTOR[MOTOR_LIN_RES])
 STEPS_LINEAR_FROM_SHORT_END = STEPS_FULL_MODE_SHORT * FACTOR[MOTOR_LIN_RES]
