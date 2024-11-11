@@ -7,6 +7,7 @@ from motor import *
 from led_strip import *
 from read_files import *
 from webserver import *
+import time
 
 class mainController:
     
@@ -14,6 +15,7 @@ class mainController:
     GPIO.setup(constants.PIN_SWITCH_UP, GPIO.IN)
     GPIO.setup(constants.PIN_SWITCH_DOWN, GPIO.IN)
     stop_exec = False
+    stop_program = False
     thread_mrot = threading.Thread()
     thread_mlin = threading.Thread()
     thread_led = threading.Thread()
@@ -24,9 +26,7 @@ class mainController:
     webserver = None
     
     def setBrightness(self, brightness):
-        print('Main controller setting brightness to', brightness)
         if brightness is None:
-            print('Early retirn')
             return
         
         self.LedStrip.setBrightness(brightness)
@@ -50,52 +50,45 @@ class mainController:
                 self.thread_led.start()
         else:
             return
-    
-    def on_press(key):
-        global thread_led
-        global stop_exec
-    
-        # Increase brightness
-        if key.char == 'i':
-            print('Increasing brightness')
-            LedStrip.increaseBrightness()
-            
-        # Decrese brightness
-        if key.char == 'd':
-            print('Decresing brightness')
-            LedStrip.decreaseBrightness()
+                
+    def pauseProgram(self):
+        # Just pause, no big deal
+        self.stop_exec = True
+        
+    def resumeProgram(self):
+        self.stop_exec = False
    
     def quitProgram(self):
         #Do all cleanup necessary
         print('Quitting program')
         
         self.stop_exec = True
+        self.stop_program = True
         self.MLin.run = False
         self.MRot.run = False
         self.LedStrip.running = False
         
         # Kill webserver
-        if thread_webserver.is_alive():
-            thread_webserver.terminate()
-            thread_webserver.join()
+        #if self.thread_webserver.is_alive():
+        #    self.thread_webserver.terminate()
+        #    self.thread_webserver.join()
             
         # Stop rotational motor
-        if thread_mrot.is_alive():
-            thread_mrot.join()
+        if self.thread_mrot.is_alive():
+            self.thread_mrot.join()
                 
         # Stop linear motor
-        if thread_mlin.is_alive():
-            thread_mlin.join()
+        if self.thread_mlin.is_alive():
+            self.thread_mlin.join()
                 
         # Stop LED strip
-        print('Set Led Strip running to {0}'.format(LedStrip.running))
-        if thread_led.is_alive():
-            thread_led.join()
+        if self.thread_led.is_alive():
+            self.thread_led.join()
             
         # Cleanup
         print('Quitting program, goodbye')
-        MRot.disable_motor()
-        MLin.disable_motor()
+        self.MRot.disable_motor()
+        self.MLin.disable_motor()
         GPIO.cleanup()
     
     def __init__(self):
@@ -124,7 +117,12 @@ class mainController:
         self.MLin.step(steps = constants.STEPS_LINEAR_FROM_SHORT_END, delay = 0.006 / constants.FACTOR[constants.MOTOR_LIN_RES], direction = constants.MOTOR_LIN_UP, switch = constants.PIN_SWITCH_UP) # Move known amount of steps to center
           
         # Infinite loop processing files
-        while not self.stop_exec:
+        while not self.stop_program:
+            
+            if self.stop_exec:
+                # Pause program for 5 seconds
+                time.sleep(5)
+                continue
             
             # Disable motors when calculating steps, can take some time
             self.MLin.disable_motor()
@@ -143,23 +141,32 @@ class mainController:
             
             # Begin pattern
             for step in steps:
-                if not self.stop_exec:
-                    # Create motor thread
-                    self.thread_mrot = threading.Thread(target=self.MRot.step, args=(step[0], step[2], constants.MOTOR_ROT_CW if step[0] > 0 else constants.MOTOR_ROT_CCW, None))
-                    self.thread_mlin = threading.Thread(target=self.MLin.step, args=(step[1], step[3], constants.MOTOR_LIN_UP if step[1] > 0 else constants.MOTOR_LIN_DOWN, constants.PIN_SWITCH_UP if step[1] > 0 else constants.PIN_SWITCH_DOWN))
+                # Quit program
+                if self.stop_program:
+                    break
+                elif self.stop_exec:
+                    # Pause program here
+                    while(self.stop_exec):
+                        time.sleep(5)
+                        continue
+                      
                     
-                    # Start both motors
-                    self.thread_mrot.start()
-                    self.thread_mlin.start()
+                #All conditions ok, do the steps
+                # Create motor thread
+                self.thread_mrot = threading.Thread(target=self.MRot.step, args=(step[0], step[2], constants.MOTOR_ROT_CW if step[0] > 0 else constants.MOTOR_ROT_CCW, None))
+                self.thread_mlin = threading.Thread(target=self.MLin.step, args=(step[1], step[3], constants.MOTOR_LIN_UP if step[1] > 0 else constants.MOTOR_LIN_DOWN, constants.PIN_SWITCH_UP if step[1] > 0 else constants.PIN_SWITCH_DOWN))
                     
-                    # Wait for both motors to finish
-                    self.thread_mrot.join()
-                    self.thread_mlin.join()
-            
+                # Start both motors
+                self.thread_mrot.start()
+                self.thread_mlin.start()
+                    
+                # Wait for both motors to finish
+                self.thread_mrot.join()
+                self.thread_mlin.join()
+                        
             # Move processed pattern/eraser
             move_file(pattern)
         
-        self.quitProgram()
 
 if __name__ == '__main__':
     controller = mainController()

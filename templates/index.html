@@ -8,6 +8,10 @@
 	<div class="row">
 		<div class="column">
 			<h2>Pattern control</h2>
+			<button class="button" onclick="setProgramState('PAUSE')">Pause</button>
+			<button class="button" onclick="setProgramState('RESUME')">Resume</button>
+			<button class="button" onclick="setProgramState('QUIT')">Quit</button>
+			
 		</div>
 		<div class="column">
 			<h2>Light control</h2>
@@ -39,6 +43,19 @@
 			  method: "POST",
 			  body: JSON.stringify({
 			    color: color
+			  }),
+			  headers: {
+			    "Content-type": "application/json; charset=UTF-8"
+			  }
+			});
+		}
+		
+		function setProgramState(state) {
+			console.log('Called functioon set program state with value', state);			
+			fetch("/program/state", {
+			  method: "POST",
+			  body: JSON.stringify({
+			    state: state
 			  }),
 			  headers: {
 			    "Content-type": "application/json; charset=UTF-8"

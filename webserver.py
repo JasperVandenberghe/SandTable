@@ -1,20 +1,37 @@
 from flask import Flask, render_template, request, jsonify
 import constants
 
-controller = None
+mainController = None
 
 class WebServer:
 
     app = Flask(__name__)
-    mainController = None
+    #mainController = None
 
     @app.route('/')
     def index():
         return render_template('index.html')
+    
+    @app.route('/program/state', methods=["POST"])
+    def setProgramState():
+        global mainController
+        
+        state = request.json['state']
+        
+        if state == 'PAUSE':
+            mainController.pauseProgram()
+        elif state == 'RESUME':
+            mainController.resumeProgram()
+        elif state == 'QUIT':
+            mainController.quitProgram()
+        else:
+            return('', 422)
+        
+        return('', 204)
         
     @app.route('/light/brightness', methods=["POST"])
     def setBrightness():
-        global controller
+        global mainController
         
         brightness = int(request.json['brightness'])
         
@@ -22,20 +39,16 @@ class WebServer:
             print('Received invalid brightness ', brightness)
             return ('', 422)
           
-        controller.setBrightness(brightness)
-        return('', 204)
-        
-        
-
+        mainController.setBrightness(brightness)
+        return('', 204)        
         
     @app.route('/light/color', methods=["POST"])
     def setColor():
-        global controller
+        global mainController
         
-        color = request.json['color']
-        print('Received request to set color to ', color)
-        
+        color = request.json['color']        
         enumColor = None
+        
         if color == 'WHITE':
             enumColor = constants.Color.WHITE
         elif color == 'RAINBOW':
@@ -44,20 +57,19 @@ class WebServer:
         if enumColor is None:
             return('', 422)
             
-        controller.setColor(enumColor)
+        mainController.setColor(enumColor)
         return('', 204)
         
-    def __init__(self, mainController = None):
-        global controller
-        print('Initializing webserver')
-        controller = mainController
+    def __init__(self, controller):
+        global mainController
+        
+        mainController = controller
+        print('Main controller: ')
+        print(mainController)
         
     def startServer(self):
         print('Starting server')
         self.app.run(debug=False, use_reloader=False, port=5000, host='0.0.0.0')
-        
-        print('Server stopped')
-
         
 if __name__ == '__main__':
     webServer = WebServer()
