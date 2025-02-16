@@ -9,6 +9,7 @@ import RPi.GPIO as GPIO
 import time
 from rpi_ws281x import PixelStrip, Color
 import argparse
+import constants
 
 # LED strip configuration:
 LED_COUNT = 209       # Number of LED pixels.
@@ -115,7 +116,7 @@ class LedStripThread():
         
         while self.running:
             #self.rainbow(wait_ms = 200)
-            self.rainbowCycle(wait_ms = 800)
+            self.rainbowCycle(wait_ms = constants.RAINBOW_WAIT_TIME_MS)
             #self.theaterChaseRainbow()
             
         
