@@ -4,6 +4,7 @@ from os import path
 import random
 import numpy as np
 import constants 
+import math
 
 filepath = os.path.split(os.path.realpath(__file__))[0]
 
@@ -66,11 +67,21 @@ def get_lines(filepath):
 
 def lines_to_steps(lines):
     arr = np.zeros(shape=(len(lines),2), dtype=int)
+    # Keep track of error in every step of loop, add in next step to minimize overall error
+    theta_error = 0.0
+    rho_error = 0.0
+    double_pi = 2 * math.pi
     
     for index, line in enumerate(lines):
         # To steps
-        theta = round(float(line.split(' ')[0]) * constants.STEPS_DISK_ROTATION / 6.283)
-        rho = round(float(line.split(' ')[1]) * constants.STEPS_LINEAR_LENGTH)
+        theta_before_round = (float(line.split(' ')[0]) * constants.STEPS_DISK_ROTATION / double_pi) + theta_error # Add theta error from previous step
+        theta = round(theta_before_round)
+        theta_error = theta_before_round - theta # Set theta error for next step
+        
+        rho_before_round = (float(line.split(' ')[1]) * constants.STEPS_LINEAR_LENGTH) + rho_error # Add rho error from previous step
+        rho = round(rho_before_round)
+        rho_error = rho_before_round - rho
+
         arr[index] = [theta, rho]
     arr = arr[1:] - arr[:-1]
     
